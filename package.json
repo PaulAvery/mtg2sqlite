@@ -1,0 +1,20 @@
+{
+  "name": "mtg2sqlite",
+  "version": "0.0.0",
+  "scripts": {
+    "graph": "rm -f mtg.sqlite && npm run migrate && sqleton -L neato -o db.png mtg.sqlite",
+    "migrate": "node -e \"require('./lib/database.js').then(db => db.destroy(), e => console.error(e) || process.exit(1))\""
+  },
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "co": "^4.6.0",
+    "fs-extra": "^0.30.0",
+    "knex": "^0.11.10",
+    "longjohn": "^0.2.11",
+    "node-fetch": "^1.6.1",
+    "sqlite3": "^3.1.4"
+  },
+  "devDependencies": {
+    "sqleton": "^1.2.2"
+  }
+}
