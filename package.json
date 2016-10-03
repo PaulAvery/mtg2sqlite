@@ -2,12 +2,14 @@
   "name": "mtg2sqlite",
   "version": "0.0.0",
   "scripts": {
+    "test": "npm run build && eslint src --ext .ts",
+    "build": "rm -rf lib && tsc",
+    "prepublish": "typings install && npm run build",
     "graph": "rm -f mtg.sqlite && npm run migrate && sqleton -L neato -o db.png mtg.sqlite",
-    "migrate": "node -e \"require('./lib/database.js').then(db => db.destroy(), e => console.error(e) || process.exit(1))\""
+    "migrate": "npm run build && node -e \"require('./lib/database').default.then(db => db.close()).catch(e => console.error(e) || process.exit(1))\""
   },
   "dependencies": {
     "cheerio": "^0.22.0",
-    "co": "^4.6.0",
     "fs-extra": "^0.30.0",
     "knex": "^0.11.10",
     "longjohn": "^0.2.11",
@@ -15,6 +17,9 @@
     "sqlite3": "^3.1.4"
   },
   "devDependencies": {
-    "sqleton": "^1.2.2"
+    "sqleton": "^1.2.2",
+    "typescript": "^2.0.3",
+    "typescript-eslint-parser": "^0.4.0",
+    "typings": "^1.4.0"
   }
 }

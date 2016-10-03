@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es6",
+        "outDir": "lib",
+        "newLine": "LF",
+        "declaration": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictNullChecks": true,
+        "inlineSourceMap": true,
+        "inlineSources": true
+    },
+    "include": [
+        "typings/index.d.ts",
+        "src/**/*"
+    ]
+}
