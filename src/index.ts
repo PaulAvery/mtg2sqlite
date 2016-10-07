@@ -1,40 +1,32 @@
-require('longjohn');
+import 'longjohn';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as readline from 'readline';
 
-const parse = require('./lib/import');
-const database = require('./lib/database');
-const readline = require('readline');
+import parse from './import';
+import database from './database';
 
-let progress = parse();
+/* Create error log */
+let log = fs.createWriteStream(path.join(process.cwd(), 'mtg2sqlite.log'));
+log.on('error', (e: Error) => console.error(e) || process.exit(1));
 
-let interval = setInterval(() => {
-	readline.cursorTo(process.stdout, 0, 0);
-	readline.clearScreenDown(process.stdout);
+async function main() {
+	let db = await database;
+	let progress = parse();
 
-	function printProgress(p) {
-		console.log(`${p.name}: ${(p.progress() * 100).toFixed(2)}% [${p.completed} / ${p.total}]`);
+	/* Log errors */
+	progress.on('error', (e: Error) => log.write(`${e.message}\n${e.stack}`));
 
-		if(p.working.length) {
-			printProgress(p.working[0]);
-		}
-	}
+	/* Output current progress to stdout */
+	progress.on('progress', () => {
+		readline.cursorTo(process.stdout, 0, 0);
+		readline.clearScreenDown(process.stdout);
 
-	printProgress(progress);
-}, 1000);
+		console.log(JSON.stringify(progress.progress(), null, 2));
+	});
 
-/* TODO */
-clearInterval(interval);
+	await progress.toPromise();
+	await db.close();
+}
 
-progress.then(() => {
-	clearInterval(interval);
-
-	return database.then(db => db('errors').select());
-})
-.then(errors => {
-	if(errors.length > 0) {
-		console.log('The following errors occcured:');
-		errors.forEach(e => console.log(`${e.type}: ${e.message}`));
-	}
-
-	return database.then(db => db.destroy());
-})
-.catch(e => console.error(e) || process.exit(1));
+main().then(() => log.close()).catch(e => console.error(e) || process.exit(1));

@@ -69,6 +69,7 @@ export default class Progress extends EventEmitter {
 		if(this.initialized && !this.failed && this.running) {
 			if(this.reserved === 0 && this.jobs.filter(j => !j.done).length === 0) {
 				this.running = false;
+				this.emit('progress');
 				this.emit('success');
 			}
 		}
@@ -118,12 +119,14 @@ export default class Progress extends EventEmitter {
 		/* Handle success*/
 		progress.on('success', () => {
 			job.done = true;
+			this.emit('progress');
 			this.check();
 		});
 
 		/* Handle error */
 		progress.on('failure', (e: Error) => {
 			job.done = true;
+			this.emit('progress');
 			this.emit('error', e);
 
 			if(fatal) {
@@ -132,6 +135,9 @@ export default class Progress extends EventEmitter {
 			
 			this.check();
 		});
+
+		/* Pass progress upwards */
+		progress.on('progress', () => this.emit('progress'));
 
 		this.jobs.push(job);
 	}
