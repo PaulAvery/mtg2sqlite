@@ -1,12 +1,15 @@
-const fs = require('fs-extra');
-const path = require('path');
-const fetch = require('node-fetch');
-const crypto = require('crypto');
-const cheerio = require('cheerio');
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import * as fetch from 'node-fetch';
+import * as crypto from 'crypto';
+import * as cheerio from 'cheerio';
+
+import promise from './promise';
 
 const cacheDir = path.join(process.cwd(), 'cache');
 
-function urlToPath(url) {
+/** Convert a url to the cachepath on disk */
+function urlToPath(url: string) {
 	const segments = 3;
 
 	let pth = '';
@@ -20,35 +23,39 @@ function urlToPath(url) {
 	return cacheDir + pth + '/' + hash;
 }
 
-function* getFromDisk(url) {
+/** Get the given page from the on-disk cache */
+async function getFromDisk(url: string) {
 	let pth = urlToPath(url);
-	let html = yield cb => fs.readFile(pth, 'utf8', cb);
+	let html = await promise<NodeJS.ErrnoException, string>(cb => fs.readFile(pth, 'utf8', cb));
 
 	return cheerio.load(html);
 }
 
-function* getFromWeb(url) {
+/** Get the given url from the web and save it to the cache */
+async function getFromWeb(url: string) {
 	let pth = urlToPath(url);
-	let res = yield fetch(url);
+	let res = await fetch(url);
 
 	if(!res.ok) {
 		throw new Error(`Request to ${url} failed: [${res.status}] ${res.statusText}`);
 	}
 
-	let html = yield res.text();
-	yield cb => fs.outputFile(pth, html, cb);
+	let html = await res.text();
+	await promise(cb => fs.outputFile(pth, html, cb));
 
 	return cheerio.load(html);
 }
 
-exports.getPage = function* (url) {
+/** Get a cheerio object of the given url. Uses cache if possible */
+export async function getPage(url: string) {
 	try {
-		return yield getFromDisk(url);
+		return await getFromDisk(url);
 	} catch(e) {
-		return yield getFromWeb(url);
+		return await getFromWeb(url);
 	}
 };
 
-exports.clearCache = function* () {
-	return yield cb => fs.remove(cacheDir, cb);
+/** Clear out the entire cache */
+export async function clearCache() {
+	await promise(cb => fs.remove(cacheDir, cb));
 };

@@ -3,7 +3,7 @@ import { Database as SQLite } from 'sqlite3';
 import Queryable from './Queryable';
 import Transaction from './Transaction';
 
-/* Create a new database */
+/** Create a new database */
 export default async function initializeDatabase(file: string) {
 	return new Promise<SQLite>((resolve, reject) => {
 		let db = new SQLite(file, e => {
@@ -17,7 +17,7 @@ export default async function initializeDatabase(file: string) {
 }
 
 export class Database extends Queryable {
-	/* Create a new transaction */
+	/** Create a new transaction */
 	public async transaction() {
 		let tr = await new Transaction(await initializeDatabase(this.file), this.file);
 
@@ -26,7 +26,7 @@ export class Database extends Queryable {
 		return tr;
 	}
 
-	/* Close the connection */
+	/** Close the connection */
 	public async close() {
 		return await super.close();
 	}

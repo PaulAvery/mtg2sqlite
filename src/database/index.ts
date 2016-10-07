@@ -8,7 +8,7 @@ const file = path.join(__dirname, '../../mtg.sqlite');
 const debug = process.env['NODE_ENV'] !== 'production';
 const migrationDir = path.join(__dirname, 'migrations');
 
-/* Apply all required migrations in order */
+/** Apply all required migrations in order */
 async function applyMigrations(db: Database) {
 	/* Load all migrations */
 	let migrations: ((db: Queryable) => Promise<void>)[] = fs.readdirSync(migrationDir)
@@ -45,7 +45,7 @@ async function applyMigrations(db: Database) {
 	return db;
 }
 
-/* Create the original database connection and run migratrions */
+/** Create the original database connection and run migratrions */
 async function createRootDb() {
 	if(debug) {
 		verbose();

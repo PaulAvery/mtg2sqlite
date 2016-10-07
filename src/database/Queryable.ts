@@ -1,13 +1,14 @@
+import promise from '../promise';
 import { Database } from 'sqlite3';
 
-/* An error onto which we can attach our sql query and paramters */
+/** An error onto which we can attach our sql query and paramters */
 class QueryError extends Error {
 	constructor(error: Error, public sql: string, public params: (string | number)[]) {
 		super(error.message);
 	}
 }
 
-/* Run a query on the db and do so in awaitable fashion */
+/** Run a query on the db and do so in awaitable fashion */
 function query(db: Database, sql: string, params: (string | number)[]) {
 	return new Promise<any[]>((resolve, reject) => {
 		db.all(sql, params, (e, rows) => {
@@ -20,7 +21,7 @@ function query(db: Database, sql: string, params: (string | number)[]) {
 	});
 }
 
-/* Normalize parameters (especially booleans) */
+/** Normalize parameters (especially booleans) */
 function normalize(param: string | number | boolean) {
 	if(typeof param === 'string' || typeof param === 'number') {
 		return param;
@@ -29,7 +30,7 @@ function normalize(param: string | number | boolean) {
 	}
 }
 
-/* Escape and quote a column name */
+/** Escape and quote a column name */
 function quoteColumn(column: string) {
 	let escapedColumn = column.replace(/\\/g, '\\\\').replace('`', '\`');
 
@@ -41,26 +42,17 @@ export default class Queryable {
 
 	constructor(protected db: Database, protected file: string) {}
 
-	/* Close the connection */
-	protected close() {
-		return new Promise((resolve, reject) => {
-			if(this.closed) {
-				reject(new Error('Connection is already closed'));
-			} else {
-				this.closed = true;
+	/** Close the connection */
+	protected async close() {
+		if(this.closed) {
+			throw new Error('Connection is already closed');
+		}
 
-				this.db.close(e => {
-					if(e) {
-						reject(e);
-					} else {
-						resolve();
-					}
-				});
-			}
-		});
+		this.closed = true;
+		await promise(cb => this.db.close(cb));
 	}
 
-	/* Run a raw sql query */
+	/** Run a raw sql query */
 	public async raw(sql: string, params: ((string | number | boolean)[] | {[key: string]: (string | number | boolean)}) = []) {
 		let processedSQL: string, processedParams: (string | number)[];
 

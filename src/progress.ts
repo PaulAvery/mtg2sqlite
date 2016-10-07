@@ -1,107 +1,178 @@
-const co = require('co');
-const database = require('./database');
-
-class Progress extends Promise {
-	constructor(fn) {
-		let reject;
-		let resolve;
-
-		super((res, rej) => {
-			reject = rej;
-			resolve = res;
-
-			if(typeof fn === 'function') {
-				fn(res, rej);
-			}
-		});
-
-		if(typeof fn === 'string') {
-			this.name = fn;
-		}
-
-		this.resolve = d => resolve(d);
-		this.reject = e => reject(e);
-
-		this.noProgressCompleted = 0;
-		this.noProgressTotal = 0;
-
-		this.completed = 0;
-		this.working = [];
-		this.total = 0;
-	}
-
-	addTotal(count) {
-		this.total += count;
-
-		return this;
-	}
-
-	attach(child, { reserved = false, progress = true } = {}) {
-		if(!reserved && progress) {
-			this.total++;
-		} else if(!progress) {
-			this.noProgressTotal++;
-		}
-
-		if(child.progress) {
-			this.working.push(child);
-		}
-
-		child.catch(e => {
-			this.reject(e);
-		}).then(() => {
-			if(progress) {
-				this.completed++;
-			} else {
-				this.noProgressCompleted++;
-			}
-
-			if(child.progress) {
-				this.working.splice(this.working.indexOf(child), 1);
-			}
-
-			if(this.completed === this.total && this.noProgressCompleted === this.noProgressTotal) {
-				this.resolve();
-			}
-		});
-
-		return child;
-	}
-
-	progress() {
-		let completed = this.completed + this.working.reduce((sum, c) => sum + c.progress(), 0);
-
-		return this.total === 0 ? 0 : completed / this.total;
-	}
-}
+import database from './database';
+import { EventEmitter } from 'events';
 
 /*
- * Utility method to create a named progress instance
- * which logs its errors to the database.
+ * Create a new error identical to the old one but with an
+ * added message prefix.
  */
-Progress.make = function(name, fn, fnFatal) {
-	let progress = new Progress(name);
+function prefixError(prefix: string, error: Error) {
+	let result = new Error(`[${prefix}] ${error.message}`);
+	result.stack = error.stack;
 
-	let promise = co(function *() {
-		let db = yield database;
+	return result;
+}
 
-		if(fnFatal) {
-			/* Woohoo, finally a usage for this */
-			[fn, fnFatal] = [fnFatal, fn];
+/**
+ * A class to track progress of, well, "things".
+ * You pass it a name and a promise returning function (e.g. an async function).
+ * This function will be called with "this" set to the Progress instance and should
+ * attach any parts of the job which should be tracked.
+ * 
+ * The object emits the "success" event once all parts completed, successful or not.
+ * The "error" event is emitted for any failed part (including nested ones).
+ * The "failure" event is emitted if a job marked as nonexpendable fails.
+ */
+export default class Progress extends EventEmitter {
+	private jobs: { done: boolean, progress: Progress }[] = [];
 
-			yield fnFatal.call(progress, db);
+	/** Flags to only emit success and failure events once */
+	private failed = false;
+	private running = true;
+
+	/** Number of reserved jobs */
+	private reserved = 0;
+
+	/** Flag to signal if the initialization promise funished */
+	private initialized = false;
+
+	/** If we failed, the reason for our failure */
+	private failureReason: Error | null = null;
+	
+	constructor(private name: string, fn: (this: Progress) => Promise<void>) {
+		super();
+		
+		fn.call(this).then(() => {
+			this.initialized = true;
+
+			if(this.reserved > 0) {
+				throw new Error('After initialization the amount of reserved jobs was not met by the attached jobs');
+			}
+
+			this.check();
+		}).catch((e: Error) => {
+			this.fatal(e);
+		});
+	}
+
+	/** Mark this progress object as failed */
+	private fatal(error: Error) {
+		if(!this.failed) {
+			this.failed = true;
+			this.failureReason = prefixError(this.name, error);
+
+			this.emit('failure', this.failureReason);
+		}
+	}
+
+	/** Check if we are done and if so, emit event */
+	private check() {
+		if(this.initialized && !this.failed && this.running) {
+			if(this.reserved === 0 && this.jobs.filter(j => !j.done).length === 0) {
+				this.running = false;
+				this.emit('success');
+			}
+		}
+	}
+
+	/**
+	 * Reserve the given number jobs for later attachment.
+	 * Useful if you know the number of jobs that will be run but want to execute them one-by-one.
+	 */
+	public reserve(count: number) {
+		if(this.initialized) {
+			throw new Error('Tried to reserve jobs on initialized Progress object');
 		}
 
-		try {
-			yield fn.call(progress, db);
-		} catch(e) {
-			yield db('errors').insert({ message: e.message, stack: e.stack, type: name });
+		this.reserved += count;
+	}
+
+	/**
+	 * Add a new child job to this progress counter.
+	 * The child can be a promise or another progress object.
+	 * Its progress will factor into the total progress of this object.
+	 * 
+	 * If you previously reserved this slot, pass the "reserved" option,
+	 * if this entire progress object should fail based on the result of this job, pass the fatal option.
+	 */
+	public attach(progress: Progress, { reserved = false, fatal = false } = {}) {
+		if(this.initialized) {
+			throw new Error('Tried to attach a job on initialized progress object');
 		}
-	});
 
-	progress.attach(promise, { progress: false });
+		if(reserved) {
+			if(this.reserved <= 0) {
+				throw new Error('Tried to attach a reserved job with no reserved slots remaining');
+			}
 
-	return progress;
-};
+			this.reserved--;
+		}
 
-module.exports = Progress;
+		let job = {
+			done: false,
+			progress: progress
+		};
+
+		/* Pass errors on upwards */
+		progress.on('error', (e: Error) => this.emit('error', e));
+
+		/* Handle success*/
+		progress.on('success', () => {
+			job.done = true;
+			this.check();
+		});
+
+		/* Handle error */
+		progress.on('failure', (e: Error) => {
+			job.done = true;
+			this.emit('error', e);
+
+			if(fatal) {
+				this.fatal(new Error(`Child failed: ${ e.message }`));
+			}
+			
+			this.check();
+		});
+
+		this.jobs.push(job);
+	}
+
+	/** Returns a progress object for all descendant progress */
+	public progress() {
+		let progress = 0;
+		let children: Progress[] = [];
+
+		let total = this.reserved + this.jobs.length;
+		
+		if(total === 0) {
+			if(this.initialized) {
+				progress = 1;
+			}
+		} else {
+			let childProgress = this.jobs.reduce((sum, job) => sum + job.progress.progress().progress, 0);
+			progress = childProgress / total;
+
+			children = this.jobs.map(j => j.progress);
+		}
+
+		return { progress, children };
+	}
+
+	/** Utility method to create a promise which resolves / rejects on failure/success event of this object */
+	public toPromise() {
+		return new Promise<void>((resolve, reject) => {
+			if(this.failed) {
+				reject(this.failureReason);
+			} else if(!this.running) {
+				resolve();
+			} else {
+				this.on('failure', resolve);
+				this.on('success', reject)
+			}
+		});
+	}
+
+	/** Utility method to create a Progress object from a promise */
+	public static fromPromise(name: string, promise: Promise<void>) {
+		return new Progress(name, () => promise);
+	}
+}
