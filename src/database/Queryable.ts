@@ -3,13 +3,13 @@ import { Database } from 'sqlite3';
 
 /** An error onto which we can attach our sql query and paramters */
 class QueryError extends Error {
-	constructor(error: Error, public sql: string, public params: (string | number)[]) {
+	constructor(error: Error, public sql: string, public params: (string | number | null)[]) {
 		super(error.message);
 	}
 }
 
 /** Run a query on the db and do so in awaitable fashion */
-function query(db: Database, sql: string, params: (string | number)[]) {
+function query(db: Database, sql: string, params: (string | number | null)[]) {
 	return new Promise<any[]>((resolve, reject) => {
 		db.all(sql, params, (e, rows) => {
 			if(e) {
@@ -22,11 +22,13 @@ function query(db: Database, sql: string, params: (string | number)[]) {
 }
 
 /** Normalize parameters (especially booleans) */
-function normalize(param: string | number | boolean) {
+function normalize(param: string | number | boolean | null) {
 	if(typeof param === 'string' || typeof param === 'number') {
 		return param;
-	} else {
+	} else if(typeof param === 'boolean') {
 		return param ? 1 : 0;
+	} else {
+		return null;
 	}
 }
 
@@ -53,8 +55,8 @@ export default class Queryable {
 	}
 
 	/** Run a raw sql query */
-	public async raw(sql: string, params: ((string | number | boolean)[] | {[key: string]: (string | number | boolean)}) = []) {
-		let processedSQL: string, processedParams: (string | number)[];
+	public async raw(sql: string, params: ((string | number | boolean | null)[] | {[key: string]: (string | number | boolean | null)}) = []) {
+		let processedSQL: string, processedParams: (string | number | null)[];
 
 		if(this.closed) {
 			throw new Error('Connection already closed');

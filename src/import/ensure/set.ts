@@ -1,10 +1,12 @@
-const database = require('../../database');
+import database from '../../database';
 
-module.exports = function*({ name }) {
-	let db = yield database;
-	let query = db.insert({ name }).into('sets');
+export type set = {
+	name: string
+};
 
-	yield database.upsert(query);
+export default async function ensureSet({ name }: set) {
+	let db = await database;
+	await db.raw('replace into sets ($columns) values ($values)', { name });
 
 	return name;
-};
+}

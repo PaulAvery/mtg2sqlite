@@ -1,19 +1,21 @@
-const page = require('../../cache').getPage;
-const Progress = require('../../progress');
+import Progress from '../../progress';
+import { getPage as page } from '../../cache';
 
-const parseSet = require('../parse/set');
-const processListing = require('./listing');
+import parseSet from '../parse/set';
+import processListing from './listing';
 
-module.exports = set => Progress.make(`Set "${set}"`, function* () {
-	let $ = yield page(`http://gatherer.wizards.com/Pages/Search/Default.aspx?set=["${set}"]`);
+export default function processSet(set: string) {
+	return new Progress(`Set "${set}"`, async p => {
+		let $ = await page(`http://gatherer.wizards.com/Pages/Search/Default.aspx?set=["${set}"]`);
 
-	/* Get the total card count */
-	let { pageCount } = parseSet($);
+		/* Get the total card count */
+		let { pageCount } = parseSet($);
 
-	/* Process all pages */
-	for(let i = 1; i <= pageCount; i++) {
-		let url = `http://gatherer.wizards.com/Pages/Search/Default.aspx?page=${i - 1}&set=["${set}"]`;
+		/* Process all pages */
+		for(let i = 1; i <= pageCount; i++) {
+			let url = `http://gatherer.wizards.com/Pages/Search/Default.aspx?page=${i - 1}&set=["${set}"]`;
 
-		this.attach(processListing(url));
-	}
-});
+			p.attach(processListing(url));
+		}
+	});
+}

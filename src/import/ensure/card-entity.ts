@@ -1,8 +1,13 @@
-const database = require('../../database');
+import database from '../../database';
 
-module.exports = function*({ card, entity }) {
-	let db = yield database;
-	let query = db.insert({ card, entity }).into('cards_entities');
-
-	yield database.upsert(query);
+export type link = {
+	card: string,
+	entity: string
 };
+
+export default async function ensureCardEntityLink({ card, entity }: link) {
+	let db = await database;
+	await db.raw('replace into cards_entities ($columns) values ($values)', { card, entity });
+
+	return name;
+}

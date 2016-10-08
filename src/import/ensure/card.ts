@@ -1,17 +1,24 @@
-const database = require('../../database');
+import database from '../../database';
 
-exports.ensureCardTitle = function*({ title, cardId, language }) {
-	let db = yield database;
-	let query = db.insert({ title, card_id: cardId, language_name: language }).into('card_titles');
-
-	yield database.upsert(query);
+export type cardTitle = {
+	title: string,
+	cardId: string,
+	language: string
 };
 
-exports.ensureCard = function*({ title, rarity }) {
-	let db = yield database;
-	let query = db.insert({ id: title, rarity }).into('cards');
+export type card = {
+	title: string,
+	rarity: string
+};
 
-	yield database.upsert(query);
+export async function ensureCardTitle({ title, cardId, language }: cardTitle) {
+	let db = await database;
+	await db.raw('insert into card_titles ($columns) values ($values)', { title, card_id: cardId, language_name: language });
+}
+
+export async function ensureCard({ title, rarity }: card) {
+	let db = await database;
+	await db.raw('insert into cards ($columns) values ($values)', { id: title, rarity });
 
 	return title;
-};
+}

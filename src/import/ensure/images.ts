@@ -1,5 +1,5 @@
-const co = require('co');
-const database = require('../../database');
+import co from 'co';
+import database from '../../database';
 
 function* ensureImageGroup(db, images) {
 	let groupIds = yield db.select('imagegroup_id').from('images').whereIn('id', images).groupBy('imagegroup_id');

@@ -1,13 +1,13 @@
-const page = require('../../cache').getPage;
-const processSingleDetails = require('./single/detail');
+import { getPage as page } from '../../cache';
+import processSingleDetails from './single/detail';
 
-module.exports = function*(url) {
-	let $ = yield page(url);
+export default async function processDetails(url: string) {
+	let $ = await page(url);
 	let $components = $('.cardComponentContainer > *');
 
 	if($components.length === 1) {
 		/* We got a single image */
-		yield processSingleDetails(url);
+		await processSingleDetails(url);
 	} else if($components.length === 2) {
 		/* TODO: We got something with two images */
 	}

@@ -1,10 +1,12 @@
-const database = require('../../database');
+import database from '../../database';
 
-module.exports = function*({ name }) {
-	let db = yield database;
-	let query = db.insert({ name }).into('formats');
+export type format = {
+	name: string
+};
 
-	yield database.upsert(query);
+export default async function ensureFormat({ name }: format) {
+	let db = await database;
+	await db.raw('replace into formats ($columns) values ($values)', { name });
 
 	return name;
 };

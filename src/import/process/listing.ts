@@ -1,18 +1,23 @@
-const url = require('url');
-const page = require('../../cache').getPage;
-const Progress = require('../../progress');
+import * as url from 'url';
+import Progress from '../../progress';
+import { getPage as page } from '../../cache';
 
-const processDetails = require('./details');
+import processDetails from './details';
 
-module.exports = uri => Progress.make(`Listing page ${uri}`, function*() {
-	let $ = yield page(uri);
+export default function processListing(uri: string) {
+	return new Progress(`Listing page ${uri}`, async p => {
+		let $ = await page(uri);
 
-	/* Add total card count and process them one by one */
-	this.addTotal($('.cardTitle').length);
+		/* Add total card count and process them one by one */
+		p.reserve($('.cardTitle').length);
 
-	for(let link of $('.cardTitle > a').toArray()) {
-		let target = url.resolve(uri, $(link).attr('href'));
+		for(let link of $('.cardTitle > a').toArray()) {
+			let target = url.resolve(uri, $(link).attr('href'));
+			let progress = processDetails(target);
 
-		yield this.attach(processDetails(target), { reserved: true });
-	}
-});
+			p.attach(Progress.fromPromise(`Details ${target}`, progress), { reserved: true });
+
+			await progress;
+		}
+	});
+}

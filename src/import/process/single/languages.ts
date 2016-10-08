@@ -1,9 +1,10 @@
-const url = require('url');
-const page = require('../../../cache').getPage;
-const ensureLanguage = require('../../ensure/language');
+import * as url from 'url';
+import { getPage as page } from '../../../cache';
 
-module.exports = function*(uri, card) {
-	let $ = yield page(uri);
+import ensureLanguage from '../ensure/language';
+
+export default async function processSingleLanguages(uri: string, card: string) {
+	let $ = await page(uri);
 
 	let languages = $('.cardItem').map((i, c) => {
 		let $c = $(c);
@@ -18,10 +19,9 @@ module.exports = function*(uri, card) {
 	languages.forEach(l => { filteredLanguages[l.language] = l; });
 
 	for(let l of filteredLanguages) {
-		yield ensureLanguage({ language: l.language, translatedLanguage: l.translatedLanguage });
+		await ensureLanguage({ language: l.language, translatedLanguage: l.translatedLanguage });
 
-		let cardTitle = c;
-		let imageGroup = parseSingleImages(yield page(l.link));
+		let imageGroup = parseSingleImages(await page(l.link));
 		/* TODO */
 	}
 };

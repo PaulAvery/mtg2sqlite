@@ -38,10 +38,10 @@ export default class Progress extends EventEmitter {
 	/** If we failed, the reason for our failure */
 	private failureReason: Error | null = null;
 	
-	constructor(private name: string, fn: (this: Progress) => Promise<void>) {
+	constructor(private name: string, fn: (this: Progress, progress: Progress) => Promise<void>) {
 		super();
 		
-		fn.call(this).then(() => {
+		fn.call(this, this).then(() => {
 			this.initialized = true;
 
 			if(this.reserved > 0) {

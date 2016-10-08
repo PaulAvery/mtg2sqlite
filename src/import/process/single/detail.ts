@@ -1,43 +1,43 @@
-const page = require('../../../cache').getPage;
+import { getPage as page } from '../../../cache';
 
-const ensureEntityImages = require('../../ensure/entity-images');
-const ensureCardEntityLink = require('../../ensure/card-entity');
-const { ensureCard, ensureCardTitle } = require('../../ensure/card');
-const { ensureEntity, ensureEntityTitle } = require('../../ensure/entity');
+import ensureEntityImages from '../../ensure/entity-images';
+import ensureCardEntityLink from '../../ensure/card-entity';
+import { ensureCard, ensureCardTitle } from '../../ensure/card';
+import { ensureEntity, ensureEntityTitle } from '../../ensure/entity';
 
-const parseSingleCard = require('../../parse/single/card');
-const parseSingleEntity = require('../../parse/single/entity');
+import parseSingleCard from '../../parse/single/card';
+import parseSingleEntity from '../../parse/single/entity';
 
-const processSingleImages = require('./images');
-const processSingleLanguages = require('./languages');
-const processSingleLegalities = require('./legalities');
+import processSingleImages from './images';
+import processSingleLanguages from './languages';
+import processSingleLegalities from './legalities';
 
-module.exports = function*(uri) {
-	let $ = yield page(uri);
+export default async function processSingleDetails(uri: string) {
+	let $ = await page(uri);
 	let set = $('#ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_setRow > .value a:last-child').text().trim();
 
 	/* Parse card and entity */
-	let card = yield parseSingleCard($);
-	let entity = yield parseSingleEntity($);
+	let card = await parseSingleCard($);
+	let entity = await parseSingleEntity($);
 
 	/* Create card and title */
-	let cardId = yield ensureCard(card);
-	yield ensureCardTitle({ cardId, title: card.title, language: 'English' });
+	let cardId = await ensureCard(card);
+	await ensureCardTitle({ cardId, title: card.title, language: 'English' });
 
 	/* Create entity and title */
-	let entityId = yield ensureEntity(entity);
-	yield ensureEntityTitle({ entityId, title: entity.title, language: 'English' });
+	let entityId = await ensureEntity(entity);
+	await ensureEntityTitle({ entityId, title: entity.title, language: 'English' });
 
 	/* Process images and link them to the entity */
-	let imageId = yield processSingleImages(uri);
-	yield ensureEntityImages({ imageGroup: imageId, entity: entityId, language: 'English', set });
+	let imageId = await processSingleImages(uri);
+	await ensureEntityImages({ imageGroup: imageId, entity: entityId, language: 'English', set });
 
 	/* Link together card and entity */
-	yield ensureCardEntityLink({ card: card.title, entity: entity.title });
+	await ensureCardEntityLink({ card: cardId, entity: entity.title });
 
 	/* Process languages and legalities */
-	//yield processSingleLanguages();
-	//yield processSingleLegalities();
+	await processSingleLanguages(uri, cardId);
+	await processSingleLegalities(uri, cardId);
 
 	return cardId;
 };

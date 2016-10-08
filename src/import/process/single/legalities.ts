@@ -1,6 +1,6 @@
-const page = require('../../../cache').getPage;
+import {getPage as page} from '../../../cache';
 
-module.exports = function*(url, card) {
-	$legalities = yield page(url);
+export default async function processSingleLegalities(url: string, card: string) {
+	let $ = await page(url);
 	/* TODO */
 };

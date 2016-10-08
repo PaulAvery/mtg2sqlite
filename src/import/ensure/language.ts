@@ -1,10 +1,16 @@
-const database = require('../../database');
+import database from '../../database';
 
-module.exports = function*({ name, translatedName }) {
-	let db = yield database;
-	let query = db.insert({ name, translated_name: translatedName }).into('languages');
+export type language = {
+	name: string,
+	translatedName: string
+};
 
-	yield database.upsert(query);
+export default async function ensureLanguage({ name, translatedName }: language) {
+	let db = await database;
+	await db.raw(
+		'replace into languages ($columns) values ($values)',
+		{ name, translatedName }
+	);
 
 	return name;
-};
+}
