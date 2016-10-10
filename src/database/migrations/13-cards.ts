@@ -1,14 +1,14 @@
 import Queryable from '../Queryable';
 
 export default async (db: Queryable) => {
-	await db.raw(`
+	await db.run(`
 		create table cards (
 			id text primary key,
 			rarity_text text not null references rarities(text)
 		)
 	`);
 
-	await db.raw(`
+	await db.run(`
 		create table card_titles (
 			title text not null unique,
 			card_id integer not null references cards(id),
@@ -18,7 +18,7 @@ export default async (db: Queryable) => {
 		)
 	`);
 
-	await db.raw(`
+	await db.run(`
 		create table cards_legalities (
 			card_id text not null references cards(id),
 			format_name text not null references formats(name),
@@ -28,7 +28,7 @@ export default async (db: Queryable) => {
 		)
 	`);
 
-	await db.raw(`
+	await db.run(`
 		create table cards_entities (
 			card_id text not null references cards(id),
 			entity_id text not null references entities(id),

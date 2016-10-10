@@ -8,14 +8,43 @@ class QueryError extends Error {
 	}
 }
 
+/** Run a query on the db and return nothing */
+function runQuery(db: Database, sql: string, params: (string | number | null)[]) {
+	return new Promise<void>((resolve, reject) => {
+		db.run(sql, params, (e: Error, rows: {[key: string]: string}[]) => {
+			if(e) {
+				reject(new QueryError(e, sql, params));
+			} else {
+				resolve();
+			}
+		});
+	});
+}
+
 /** Run a query on the db and do so in awaitable fashion */
-function query(db: Database, sql: string, params: (string | number | null)[]) {
-	return new Promise<any[]>((resolve, reject) => {
-		db.all(sql, params, (e, rows) => {
+function selectQuery(db: Database, sql: string, params: (string | number | null)[]) {
+	return new Promise<{[key: string]: string}[]>((resolve, reject) => {
+		db.all(sql, params, (e: Error, rows: {[key: string]: string}[]) => {
 			if(e) {
 				reject(new QueryError(e, sql, params));
 			} else {
 				resolve(rows);
+			}
+		});
+	});
+}
+
+/** Run an insert query on the db and do so in awaitable fashion */
+function insertQuery(db: Database, sql: string, params: (string | number | null)[]) {
+	return new Promise<string[]>((resolve, reject) => {
+		let stmt = db.prepare(sql);
+		
+		stmt.run(params, (e: Error) => {
+			if(e) {
+				reject(new QueryError(e, sql, params));
+			} else {
+				/* TODO: Figure out how to properly return ids */
+				resolve([]);
 			}
 		});
 	});
@@ -55,7 +84,7 @@ export default class Queryable {
 	}
 
 	/** Run a raw sql query */
-	public async raw(sql: string, params: ((string | number | boolean | null)[] | {[key: string]: (string | number | boolean | null)}) = []) {
+	public prepare(sql: string, params: ((string | number | boolean | null)[] | {[key: string]: (string | number | boolean | null)}) = []) {
 		let processedSQL: string, processedParams: (string | number | null)[];
 
 		if(this.closed) {
@@ -75,6 +104,24 @@ export default class Queryable {
 			processedParams = columnNames.map(c => normalize(params[c]));
 		}
 
-		return await query(this.db, processedSQL, processedParams);
+		return { processedSQL, processedParams };
+	}
+
+	public async run(sql: string, params: ((string | number | boolean | null)[] | {[key: string]: (string | number | boolean | null)}) = []) {
+		let { processedSQL, processedParams } = this.prepare(sql, params);
+
+		return await runQuery(this.db, processedSQL, processedParams);
+	}
+
+	public async select(sql: string, params: ((string | number | boolean | null)[] | {[key: string]: (string | number | boolean | null)}) = []) {
+		let { processedSQL, processedParams } = this.prepare(sql, params);
+
+		return await selectQuery(this.db, processedSQL, processedParams);
+	}
+
+	public async insert(sql: string, params: ((string | number | boolean | null)[] | {[key: string]: (string | number | boolean | null)}) = []) {
+		let { processedSQL, processedParams } = this.prepare(sql, params);
+
+		return await insertQuery(this.db, processedSQL, processedParams);
 	}
 }

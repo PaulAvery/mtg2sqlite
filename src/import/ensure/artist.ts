@@ -6,7 +6,7 @@ export type artist = {
 
 export default async function ensureArtist({ name }: artist) {
 	let db = await database;
-	await db.raw('replace into artists ($columns) values ($values)', { name });
+	await db.insert('replace into artists ($columns) values ($values)', { name });
 
 	return name;
 }

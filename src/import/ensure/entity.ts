@@ -10,9 +10,9 @@ export type entity = {
 	title: string,
 	text: string | null,
 	flavor: string | null,
-	power: number,
-	toughness: number,
-	loyalty: number,
+	power: string | null,
+	toughness: string | null,
+	loyalty: string | null,
 	cmc: number,
 	red: boolean,
 	blue: boolean,
@@ -20,7 +20,7 @@ export type entity = {
 	black: boolean,
 	white: boolean,
 	mana: {
-		x: number,
+		x: boolean,
 		snow: number,
 		generic: number,
 		colorless: number,
@@ -55,7 +55,7 @@ export type entity = {
 export async function ensureEntityTitle({ title, entityId, language }: entityTitle) {
 	let db = await database;
 
-	await db.raw(
+	await db.insert(
 		'replace into card_title ($columns) values ($values)',
 		{
 			title,
@@ -68,7 +68,7 @@ export async function ensureEntityTitle({ title, entityId, language }: entityTit
 export async function ensureEntity(data: entity) {
 	let db = await database;
 
-	await db.raw(
+	await db.insert(
 		'replace into entities ($columns) values ($values)',
 		{
 			id: data.title,

@@ -1,7 +1,7 @@
 import Queryable from '../Queryable';
 
 export default async (db: Queryable) => {
-	await db.raw(`
+	await db.run(`
 		create table images (
 			id integer primary key,
 			cardnumber text,

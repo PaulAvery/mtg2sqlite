@@ -1,4 +1,6 @@
-module.exports = $ => {
+import * as cheerio from 'cheerio';
+
+export default function parseMana($: cheerio.Cheerio) {
 	return {
 		x: !!$.find('img[alt="Variable Colorless"]').length,
 		snow: $.find('img[alt="Snow"]').length,

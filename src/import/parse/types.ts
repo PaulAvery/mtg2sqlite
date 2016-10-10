@@ -1,7 +1,7 @@
-module.exports = typeString => {
-	let types = [];
-	let subtypes = [];
-	let supertypes = [];
+export default function parseTypes(typeString: string) {
+	let types: string[] = [];
+	let subtypes: string[] = [];
+	let supertypes: string[] = [];
 
 	let dashSides = typeString.split('—').map(p => p.trim());
 	let leftSide = dashSides[0].split(/\s/).map(p => p.trim());

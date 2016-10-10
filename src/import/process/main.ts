@@ -1,4 +1,3 @@
-import co from 'co';
 import Progress from '../../progress';
 import parseMain from '../parse/main';
 
@@ -20,17 +19,17 @@ export default function parse() {
 		await Promise.all(sets.map(ensureSet));
 
 		/* TODO */
-		p.attach(Progress.fromPromise(processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=414428')));
-		p.attach(Progress.fromPromise(processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=414429')));
-		p.attach(Progress.fromPromise(processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=221185')));
-		p.attach(Progress.fromPromise(processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=221209')));
-		p.attach(Progress.fromPromise(processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=87599&part=Erayo,+Soratami+Ascendant')));
-		p.attach(Progress.fromPromise(processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=87599&part=Erayo%27s+Essence')));
-		p.attach(Progress.fromPromise(processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=369009&part=Breaking')));
-		p.attach(Progress.fromPromise(processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=369009&part=Entering')));
-		p.attach(Progress.fromPromise(processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=405234')));
-		p.attach(Progress.fromPromise(processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=417837')));
-		p.attach(Progress.fromPromise(processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=378521')));
+		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=414428')));
+		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=414429')));
+		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=221185')));
+		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=221209')));
+		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=87599&part=Erayo,+Soratami+Ascendant')));
+		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=87599&part=Erayo%27s+Essence')));
+		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=369009&part=Breaking')));
+		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=369009&part=Entering')));
+		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=405234')));
+		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=417837')));
+		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=378521')));
 		return;
 
 		/* Now process all sets */

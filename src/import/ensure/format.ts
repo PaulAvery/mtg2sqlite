@@ -6,7 +6,7 @@ export type format = {
 
 export default async function ensureFormat({ name }: format) {
 	let db = await database;
-	await db.raw('replace into formats ($columns) values ($values)', { name });
+	await db.insert('replace into formats ($columns) values ($values)', { name });
 
 	return name;
 };

@@ -7,7 +7,7 @@ export type link = {
 
 export default async function ensureCardEntityLink({ card, entity }: link) {
 	let db = await database;
-	await db.raw('replace into cards_entities ($columns) values ($values)', { card, entity });
+	await db.insert('replace into cards_entities ($columns) values ($values)', { card, entity });
 
 	return name;
 }

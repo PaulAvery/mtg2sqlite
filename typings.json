@@ -1,6 +1,11 @@
 {
   "globalDependencies": {
+    "fs-extra": "registry:dt/fs-extra#0.0.0+20161004190449",
     "node": "registry:env/node#6.0.0+20160918225031",
+    "node-fetch": "registry:dt/node-fetch#0.0.0+20160711094047",
     "sqlite3": "registry:dt/sqlite3#2.2.3+20160724070935"
+  },
+  "dependencies": {
+    "cheerio": "registry:npm/cheerio#0.20.0+20160422172414"
   }
 }

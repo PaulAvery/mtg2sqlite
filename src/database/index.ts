@@ -18,11 +18,11 @@ async function applyMigrations(db: Database) {
 		.map(f => require(f).default);
 
 	/* Create migrations table if neccessary */
-	await db.raw('create table if not exists `migrations` (id integer)');
+	await db.run('create table if not exists `migrations` (id integer)');
 
 	/* Get latest applied migration */
-	let ids = await db.raw('select id from `migrations` order by `id` desc limit 1');
-	let latest = ids.length ? parseInt(ids[0].id) : 0;
+	let ids = await db.select('select id from `migrations` order by `id` desc limit 1');
+	let latest = ids.length ? parseInt(ids[0]['id']) : 0;
 
 	/* Apply only neccessary migrations */
 	let needed = migrations.slice(latest);
@@ -32,7 +32,7 @@ async function applyMigrations(db: Database) {
 
 		try {
 			await migration(tr);
-			await tr.raw('insert into `migrations` (id) values (?)', [latest + i + 1]);
+			await tr.insert('insert into `migrations` (id) values (?)', [latest + i + 1]);
 
 			await tr.commit();
 		} catch(e) {
@@ -52,7 +52,7 @@ async function createRootDb() {
 	}
 
 	let database = new Database(await initializeDatabase(file), file);
-	await database.raw('PRAGMA foreign_keys = ON');
+	await database.run('PRAGMA foreign_keys = ON');
 
 	return await applyMigrations(database);
 }

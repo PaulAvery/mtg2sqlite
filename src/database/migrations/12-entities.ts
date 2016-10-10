@@ -1,7 +1,7 @@
 import Queryable from '../Queryable';
 
 export default async (db: Queryable) => {
-	await db.raw(`
+	await db.run(`
 		create table entities (
 			id text primary key,
 
@@ -9,7 +9,7 @@ export default async (db: Queryable) => {
 			flavor text,
 			power text,
 			toughness text,
-			loyalty integer,
+			loyalty text,
 			converted_mana_cost real not null default 0,
 
 			red integer not null default 0,
@@ -54,7 +54,7 @@ export default async (db: Queryable) => {
 		)
 	`);
 
-	await db.raw(`
+	await db.run(`
 		create table entities_subtypes (
 			entity_id text not null references entities(id),
 			subtype_name text not null references subtypes(name),
@@ -63,7 +63,7 @@ export default async (db: Queryable) => {
 		)
 	`);
 
-	await db.raw(`
+	await db.run(`
 		create table entities_types (
 			entity_id text not null references entities(id),
 			type_name text not null references types(name),
@@ -72,7 +72,7 @@ export default async (db: Queryable) => {
 		)
 	`);
 
-	await db.raw(`
+	await db.run(`
 		create table entities_supertypes (
 			entity_id text not null references entities(id),
 			supertype_name text not null references supertypes(name),
@@ -81,7 +81,7 @@ export default async (db: Queryable) => {
 		)
 	`);
 
-	await db.raw(`
+	await db.run(`
 		create table entity_titles (
 			title text unique,
 			entity_id text not null references entities(id),
@@ -91,7 +91,7 @@ export default async (db: Queryable) => {
 		)
 	`);
 
-	await db.raw(`
+	await db.run(`
 		create table imagegroups_entities (
 			set_name text not null references sets(name),
 			entity_id text not null references entities(id),

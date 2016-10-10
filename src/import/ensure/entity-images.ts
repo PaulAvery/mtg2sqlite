@@ -10,7 +10,7 @@ export type imageEntityLink = {
 export default async function({ imageGroup, entity, language, set }: imageEntityLink) {
 	let db = await database;
 
-	await db.raw(
+	await db.insert(
 		'replace into imagegroups_entities ($columns) values ($values)',
 		{
 			set_name: set,

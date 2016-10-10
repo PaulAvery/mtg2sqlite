@@ -7,7 +7,7 @@ export type language = {
 
 export default async function ensureLanguage({ name, translatedName }: language) {
 	let db = await database;
-	await db.raw(
+	await db.insert(
 		'replace into languages ($columns) values ($values)',
 		{ name, translatedName }
 	);

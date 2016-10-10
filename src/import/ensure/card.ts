@@ -13,12 +13,12 @@ export type card = {
 
 export async function ensureCardTitle({ title, cardId, language }: cardTitle) {
 	let db = await database;
-	await db.raw('insert into card_titles ($columns) values ($values)', { title, card_id: cardId, language_name: language });
+	await db.insert('insert into card_titles ($columns) values ($values)', { title, card_id: cardId, language_name: language });
 }
 
 export async function ensureCard({ title, rarity }: card) {
 	let db = await database;
-	await db.raw('insert into cards ($columns) values ($values)', { id: title, rarity });
+	await db.insert('insert into cards ($columns) values ($values)', { id: title, rarity });
 
 	return title;
 }

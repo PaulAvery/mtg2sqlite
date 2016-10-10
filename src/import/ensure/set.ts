@@ -6,7 +6,7 @@ export type set = {
 
 export default async function ensureSet({ name }: set) {
 	let db = await database;
-	await db.raw('replace into sets ($columns) values ($values)', { name });
+	await db.insert('replace into sets ($columns) values ($values)', { name });
 
 	return name;
 }

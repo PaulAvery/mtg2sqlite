@@ -1,7 +1,9 @@
-const parseMana = require('../mana');
-const parseTypes = require('../types');
+import * as cheerio from 'cheerio';
 
-module.exports = function($) {
+import parseMana from '../mana';
+import parseTypes from '../types';
+
+export default function parseSingleEntity($: cheerio.Static) {
 	let set = $('#ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_setRow > .value a:last-child').text().trim();
 	let mana = parseMana($('#ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_manaRow > .value'));
 	let title = $('#ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_nameRow > .value').text().trim();
@@ -18,9 +20,9 @@ module.exports = function($) {
 
 	let $stats = $('#ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_ptRow > .value');
 	let $statType = $('#ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_ptRow > .label');
-	let power = null;
-	let loyalty = null;
-	let toughness = null;
+	let power: string | null = null;
+	let loyalty: string | null = null;
+	let toughness: string | null = null;
 
 	if($stats.length) {
 		switch($statType.text().trim()) {
