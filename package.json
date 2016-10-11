@@ -2,7 +2,6 @@
   "name": "mtg2sqlite",
   "version": "0.0.0",
   "scripts": {
-    "test": "npm run build",
     "build": "rm -rf lib && tsc",
     "prepublish": "typings install && npm run build",
     "graph": "rm -f mtg.sqlite && npm run migrate && sqleton -L neato -o db.png mtg.sqlite",
