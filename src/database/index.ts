@@ -33,13 +33,13 @@ async function applyMigrations(db: Database) {
 		try {
 			await migration(tr);
 			await tr.insert('insert into `migrations` (id) values (?)', [latest + i + 1]);
-
-			await tr.commit();
 		} catch(e) {
 			await tr.rollback();
 
 			throw e;
 		}
+
+		await tr.commit();
 	}
 
 	return db;

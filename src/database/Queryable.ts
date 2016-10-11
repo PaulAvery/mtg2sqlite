@@ -1,5 +1,5 @@
 import promise from '../promise';
-import { Database } from 'sqlite3';
+import { Database, Statement } from 'sqlite3';
 
 /** An error onto which we can attach our sql query and paramters */
 class QueryError extends Error {
@@ -37,14 +37,16 @@ function selectQuery(db: Database, sql: string, params: (string | number | null)
 /** Run an insert query on the db and do so in awaitable fashion */
 function insertQuery(db: Database, sql: string, params: (string | number | null)[]) {
 	return new Promise<string[]>((resolve, reject) => {
-		let stmt = db.prepare(sql);
-		
-		stmt.run(params, (e: Error) => {
+		db.run(sql, params, function(this: { lastID: string }, e: Error) {
 			if(e) {
 				reject(new QueryError(e, sql, params));
 			} else {
-				/* TODO: Figure out how to properly return ids */
-				resolve([]);
+				if(e) {
+					reject(new QueryError(e, sql, params));
+				} else {
+					/* TODO: Figure out how to properly return ids */
+					resolve([this.lastID]);
+				}
 			}
 		});
 	});
@@ -69,27 +71,16 @@ function quoteColumn(column: string) {
 }
 
 export default class Queryable {
-	private closed = false;
-
 	constructor(protected db: Database, protected file: string) {}
 
 	/** Close the connection */
 	protected async close() {
-		if(this.closed) {
-			throw new Error('Connection is already closed');
-		}
-
-		this.closed = true;
 		await promise(cb => this.db.close(cb));
 	}
 
 	/** Run a raw sql query */
 	public prepare(sql: string, params: ((string | number | boolean | null)[] | {[key: string]: (string | number | boolean | null)}) = []) {
 		let processedSQL: string, processedParams: (string | number | null)[];
-
-		if(this.closed) {
-			throw new Error('Connection already closed');
-		}
 
 		if(Array.isArray(params)) {
 			processedSQL = sql;
@@ -99,7 +90,7 @@ export default class Queryable {
 
 			let columns = columnNames.map(quoteColumn).join(', ');
 			let placeholders = columnNames.map(() => '?').join(', ');
-			
+
 			processedSQL = sql.replace('$columns', columns).replace('$values', placeholders);
 			processedParams = columnNames.map(c => normalize(params[c]));
 		}

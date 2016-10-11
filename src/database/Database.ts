@@ -21,7 +21,7 @@ export class Database extends Queryable {
 	public async transaction() {
 		let tr = await new Transaction(await initializeDatabase(this.file), this.file);
 
-		await tr.select('begin transaction');
+		await tr.run('begin transaction');
 
 		return tr;
 	}
