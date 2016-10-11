@@ -4,7 +4,7 @@ export default function parseMana($: cheerio.Cheerio) {
 	return {
 		x: !!$.find('img[alt="Variable Colorless"]').length,
 		snow: $.find('img[alt="Snow"]').length,
-		generic: $.find('img').map((i, e) => parseFloat(e.attribs.alt)).toArray().filter(n => !isNaN(n)).reduce((a, b) => a + b, 0),
+		generic: $.find('img').toArray().map(e => parseFloat(e.attribs['alt'])).filter(n => !isNaN(n)).reduce((a, b) => a + b, 0),
 		colorless: $.find('img[alt="Colorless"]').length,
 
 		red: $.find('img[alt="Red"]').length,

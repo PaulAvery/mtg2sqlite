@@ -18,7 +18,7 @@ export async function ensureCardTitle({ title, cardId, language }: cardTitle) {
 
 export async function ensureCard({ title, rarity }: card) {
 	let db = await database;
-	await db.insert('insert into cards ($columns) values ($values)', { id: title, rarity });
+	await db.insert('insert into cards ($columns) values ($values)', { id: title, rarity_text: rarity });
 
 	return title;
 }

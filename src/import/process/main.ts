@@ -15,8 +15,8 @@ export default function parse() {
 
 		/* Create all set and format entries */
 		let { sets, formats } = await parseMain('http://gatherer.wizards.com/');
-		await Promise.all(formats.map(ensureFormat));
-		await Promise.all(sets.map(ensureSet));
+		await Promise.all(formats.map(format => ensureFormat({ name: format })));
+		await Promise.all(sets.map(set => ensureSet({ name: set })));
 
 		/* TODO */
 		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=414428')));
@@ -33,8 +33,8 @@ export default function parse() {
 		return;
 
 		/* Now process all sets */
-		for(let set of sets) {
+		/*for(let set of sets) {
 			p.attach(processSet(set));
-		}
+		}*/
 	});
 }

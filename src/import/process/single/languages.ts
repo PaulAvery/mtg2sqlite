@@ -9,14 +9,14 @@ type language = { link: string, language: string, translatedLanguage: string };
 export default async function processSingleLanguages(uri: string, card: string) {
 	let $ = await page(uri);
 
-	let languages: language[] = $('.cardItem').map((i, c) => {
+	let languages: language[] = $('.cardItem').toArray().map(c => {
 		let $c = $(c);
 		let link = url.resolve(uri, $c.find('a').attr('href'));
 		let language = $c.find('td:nth-child(2)').text().trim();
 		let translatedLanguage = $c.find('td:nth-child(3)').text().trim();
 
 		return { link, language, translatedLanguage };
-	}).toArray();
+	});
 
 	let filteredLanguages: {[key: string]: language} = {};
 	languages.forEach(l => { filteredLanguages[l.language] = l; });

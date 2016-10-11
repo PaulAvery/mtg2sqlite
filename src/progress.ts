@@ -1,5 +1,6 @@
-import database from './database';
 import { EventEmitter } from 'events';
+
+export type prog = { name: string, progress: number, children: prog[] };
 
 /*
  * Create a new error identical to the old one but with an
@@ -17,7 +18,7 @@ function prefixError(prefix: string, error: Error) {
  * You pass it a name and a promise returning function (e.g. an async function).
  * This function will be called with "this" set to the Progress instance and should
  * attach any parts of the job which should be tracked.
- * 
+ *
  * The object emits the "success" event once all parts completed, successful or not.
  * The "error" event is emitted for any failed part (including nested ones).
  * The "failure" event is emitted if a job marked as nonexpendable fails.
@@ -37,10 +38,10 @@ export default class Progress extends EventEmitter {
 
 	/** If we failed, the reason for our failure */
 	private failureReason: Error | null = null;
-	
+
 	constructor(private name: string, fn: (this: Progress, progress: Progress) => Promise<void>) {
 		super();
-		
+
 		fn.call(this, this).then(() => {
 			this.initialized = true;
 
@@ -91,7 +92,7 @@ export default class Progress extends EventEmitter {
 	 * Add a new child job to this progress counter.
 	 * The child can be a promise or another progress object.
 	 * Its progress will factor into the total progress of this object.
-	 * 
+	 *
 	 * If you previously reserved this slot, pass the "reserved" option,
 	 * if this entire progress object should fail based on the result of this job, pass the fatal option.
 	 */
@@ -132,7 +133,7 @@ export default class Progress extends EventEmitter {
 			if(fatal) {
 				this.fatal(new Error(`Child failed: ${ e.message }`));
 			}
-			
+
 			this.check();
 		});
 
@@ -145,10 +146,10 @@ export default class Progress extends EventEmitter {
 	/** Returns a progress object for all descendant progress */
 	public progress() {
 		let progress = 0;
-		let children: Progress[] = [];
+		let children: prog[] = this.jobs.map(j => j.progress.progress());
 
 		let total = this.reserved + this.jobs.length;
-		
+
 		if(total === 0) {
 			if(this.initialized) {
 				progress = 1;
@@ -156,11 +157,9 @@ export default class Progress extends EventEmitter {
 		} else {
 			let childProgress = this.jobs.reduce((sum, job) => sum + job.progress.progress().progress, 0);
 			progress = childProgress / total;
-
-			children = this.jobs.map(j => j.progress);
 		}
 
-		return { progress, children };
+		return { name: this.name, progress, children };
 	}
 
 	/** Utility method to create a promise which resolves / rejects on failure/success event of this object */
@@ -171,8 +170,8 @@ export default class Progress extends EventEmitter {
 			} else if(!this.running) {
 				resolve();
 			} else {
-				this.on('failure', resolve);
-				this.on('success', reject)
+				this.on('failure', reject);
+				this.on('success', resolve);
 			}
 		});
 	}

@@ -1,5 +1,6 @@
 /node_modules
 /typings
 /cache
+/mtg2sqlite.log
 /mtg.sqlite
 /lib

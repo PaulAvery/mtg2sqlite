@@ -8,6 +8,7 @@
         "noImplicitAny": true,
         "noImplicitThis": true,
         "strictNullChecks": true,
+        "suppressImplicitAnyIndexErrors": true,
         "inlineSourceMap": true,
         "inlineSources": true
     },

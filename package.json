@@ -2,7 +2,7 @@
   "name": "mtg2sqlite",
   "version": "0.0.0",
   "scripts": {
-    "test": "npm run build && eslint src --ext .ts",
+    "test": "npm run build",
     "build": "rm -rf lib && tsc",
     "prepublish": "typings install && npm run build",
     "graph": "rm -f mtg.sqlite && npm run migrate && sqleton -L neato -o db.png mtg.sqlite",
@@ -19,7 +19,6 @@
   "devDependencies": {
     "sqleton": "^1.2.2",
     "typescript": "^2.0.3",
-    "typescript-eslint-parser": "^0.4.0",
     "typings": "^1.4.0"
   }
 }
