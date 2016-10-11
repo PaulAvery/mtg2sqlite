@@ -1,0 +1,15 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Run",
+			"type": "node",
+			"preLaunchTask": "tsc",
+			"request": "launch",
+			"program": "${workspaceRoot}/src/index.ts",
+			"cwd": "${workspaceRoot}",
+			"sourceMaps": true,
+			"outDir": "${workspaceRoot}/lib/"
+		}
+	]
+}
