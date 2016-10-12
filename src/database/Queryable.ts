@@ -2,9 +2,20 @@ import promise from '../promise';
 import { Database, Statement } from 'sqlite3';
 
 /** An error onto which we can attach our sql query and paramters */
-class QueryError extends Error {
+export class QueryError extends Error {
 	constructor(error: Error, public sql: string, public params: (string | number | null)[]) {
 		super(error.message);
+	}
+
+	public toString() {
+		let string = '';
+
+		string += `[Database Error]\n`;
+		string += `Query: ${this.sql}\n`;
+		string += `Data:  [${this.params.map(p => typeof p === 'string' ? "'" + p + "'" : p).join(', ')}]\n`;
+		string += this.stack;
+
+		return string;
 	}
 }
 
