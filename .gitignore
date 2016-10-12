@@ -2,5 +2,6 @@
 /typings
 /cache
 /mtg2sqlite.log
+/mtg.sqlite-journal
 /mtg.sqlite
 /lib

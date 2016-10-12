@@ -1,4 +1,3 @@
-import 'longjohn';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
@@ -17,14 +16,15 @@ async function main() {
 	let progress = parse();
 
 	/* Log errors */
-	progress.on('error', (e: Error) => console.log(e));
+	progress.on('error', (e: Error) => log.write(e + '\n\n'));
 
 	/* Output current progress to stdout */
+	let count = 0;
 	progress.on('progress', () => {
-		//readline.cursorTo(process.stdout, 0, 0);
-		//readline.clearScreenDown(process.stdout);
+		readline.cursorTo(process.stdout, 0, 0);
+		readline.clearScreenDown(process.stdout);
 
-		//console.log(JSON.stringify(progress.progress(), null, 2));
+		console.log(count++ + ' ' + progress.progress().progress);
 	});
 
 	await progress.toPromise();

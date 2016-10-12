@@ -10,7 +10,8 @@ export class QueryError extends Error {
 	public toString() {
 		let string = '';
 
-		string += `[Database Error]\n`;
+		string += `Database Error\n`;
+		string += `==============\n`;
 		string += `Query: ${this.sql}\n`;
 		string += `Data:  [${this.params.map(p => typeof p === 'string' ? "'" + p + "'" : p).join(', ')}]\n`;
 		string += this.stack;

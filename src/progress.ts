@@ -2,17 +2,6 @@ import { EventEmitter } from 'events';
 
 export type prog = { name: string, progress: number, children: prog[] };
 
-/*
- * Create a new error identical to the old one but with an
- * added message prefix.
- */
-function prefixError(prefix: string, error: Error) {
-	let result = new Error(`[${prefix}] ${error.message}`);
-	result.stack = error.stack;
-
-	return result;
-}
-
 /**
  * A class to track progress of, well, "things".
  * You pass it a name and a promise returning function (e.g. an async function).
@@ -57,9 +46,11 @@ export default class Progress extends EventEmitter {
 
 	/** Mark this progress object as failed */
 	private fatal(error: Error) {
+		error.message = `[${this.name}] ${error.message}`;
+
 		if(!this.failed) {
 			this.failed = true;
-			this.failureReason = prefixError(this.name, error);
+			this.failureReason = error;
 
 			this.emit('failure', this.failureReason);
 		}
@@ -115,7 +106,10 @@ export default class Progress extends EventEmitter {
 		};
 
 		/* Pass errors on upwards */
-		progress.on('error', (e: Error) => this.emit('error', e));
+		progress.on('error', (e: Error) => {
+			e.message = `[${this.name}]${e.message}`;
+			this.emit('error', e);
+		});
 
 		/* Handle success*/
 		progress.on('success', () => {
@@ -128,6 +122,8 @@ export default class Progress extends EventEmitter {
 		progress.on('failure', (e: Error) => {
 			job.done = true;
 			this.emit('progress');
+
+			e.message = `[${this.name}]${e.message}`;
 			this.emit('error', e);
 
 			if(fatal) {

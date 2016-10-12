@@ -56,7 +56,7 @@ export async function ensureEntityTitle({ title, entityId, language }: entityTit
 	let db = await database;
 
 	await db.insert(
-		'replace into card_title ($columns) values ($values)',
+		'replace into entity_titles ($columns) values ($values)',
 		{
 			title,
 			entity_id: entityId,

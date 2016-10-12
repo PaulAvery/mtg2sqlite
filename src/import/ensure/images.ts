@@ -29,7 +29,7 @@ export default async function ensureImages(images: image[]) {
 			'replace into images ($columns) values ($values)',
 			{
 				id,
-				card_number: cardNumber,
+				cardnumber: cardNumber,
 				artist_name: artistName,
 				imagegroup_id: groupId
 			}
