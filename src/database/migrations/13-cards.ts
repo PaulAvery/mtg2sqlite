@@ -1,4 +1,4 @@
-import Queryable from '../Queryable';
+import { Queryable } from '../Queryable';
 
 export default async (db: Queryable) => {
 	await db.run(`
@@ -32,7 +32,7 @@ export default async (db: Queryable) => {
 		create table cards_entities (
 			card_id text not null references cards(id),
 			entity_id text not null references entities(id),
-			
+
 			primary key (card_id, entity_id)
 		)
 	`);

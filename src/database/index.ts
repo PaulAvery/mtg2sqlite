@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { verbose } from 'sqlite3';
-import Queryable from './Queryable';
-import { default as initializeDatabase, Database } from './Database';
+import { Queryable } from './Queryable';
+import { createDatabase, Database } from './Database';
 
 const file = path.join(__dirname, '../../mtg.sqlite');
 const debug = process.env['NODE_ENV'] !== 'production';
@@ -27,19 +27,10 @@ async function applyMigrations(db: Database) {
 	/* Apply only neccessary migrations */
 	let needed = migrations.slice(latest);
 	for(let i = 0; i < needed.length; i++) {
-		let tr = await db.transaction();
-		let migration = needed[i];
-
-		try {
-			await migration(tr);
+		await db.transaction(async tr => {
+			await needed[i](tr);
 			await tr.insert('insert into `migrations` (id) values (?)', [latest + i + 1]);
-		} catch(e) {
-			await tr.rollback();
-
-			throw e;
-		}
-
-		await tr.commit();
+		});
 	}
 
 	return db;
@@ -51,10 +42,7 @@ async function createRootDb() {
 		verbose();
 	}
 
-	let database = new Database(await initializeDatabase(file), file);
-	await database.run('PRAGMA foreign_keys = ON');
-
-	return await applyMigrations(database);
+	return await applyMigrations(await createDatabase(file));
 }
 
 export default createRootDb();
