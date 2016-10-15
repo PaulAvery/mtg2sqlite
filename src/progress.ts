@@ -40,6 +40,8 @@ export default class Progress extends EventEmitter {
 
 			this.check();
 		}).catch((e: Error) => {
+			this.initialized = true;
+
 			this.fatal(e);
 		});
 	}
@@ -61,7 +63,6 @@ export default class Progress extends EventEmitter {
 		if(this.initialized && !this.failed && this.running) {
 			if(this.reserved === 0 && this.jobs.filter(j => !j.done).length === 0) {
 				this.running = false;
-				this.emit('progress');
 				this.emit('success');
 			}
 		}

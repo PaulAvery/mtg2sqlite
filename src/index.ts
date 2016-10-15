@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as readline from 'readline';
 
 import parse from './import';
 import database from './database';
@@ -19,13 +18,7 @@ async function main() {
 	progress.on('error', (e: Error) => log.write(e.stack + '\n\n'));
 
 	/* Output current progress to stdout */
-	let count = 0;
-	progress.on('progress', () => {
-		readline.cursorTo(process.stdout, 0, 0);
-		readline.clearScreenDown(process.stdout);
-
-		console.log(++count + ' ' + progress.progress().progress);
-	});
+	progress.on('progress', () => console.log(progress.progress().progress));
 
 	await progress.toPromise();
 	await db.close();
