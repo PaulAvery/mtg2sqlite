@@ -9,18 +9,16 @@ export type preparedParams = preparedParam[];
 export class QueryError extends Error {
 	constructor(error: Error, public sql: string, public params: preparedParams) {
 		super(error.message);
-	}
 
-	public toString() {
-		let string = '';
+		let stack = '';
 
-		string += `Database Error\n`;
-		string += `==============\n`;
-		string += `Query: ${this.sql}\n`;
-		string += `Data:  [${this.params.map(p => typeof p === 'string' ? "'" + p + "'" : p).join(', ')}]\n`;
-		string += this.stack;
+		stack += `Database Error\n`;
+		stack += `==============\n`;
+		stack += `Query: ${this.sql}\n`;
+		stack += `Data:  [${this.params.map(p => typeof p === 'string' ? "'" + p + "'" : p).join(', ')}]\n`;
+		stack += this.stack;
 
-		return string;
+		this.stack = stack;
 	}
 }
 

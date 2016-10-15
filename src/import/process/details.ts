@@ -10,5 +10,6 @@ export default async function processDetails(url: string) {
 		await processSingleDetails(url);
 	} else if($components.length === 2) {
 		/* TODO: We got something with two images */
+		throw new Error('Twoparters not implemented');
 	}
 };

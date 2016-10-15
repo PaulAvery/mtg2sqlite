@@ -62,19 +62,25 @@ export class Database implements Queryable {
 
 	constructor(protected db: SQLite) {};
 
-	private runQuery(sql: string, params: preparedParams = []) {
-		return promise<QueryError, void>(cb => this.db.run(sql, params, cb))
-			.catch(e => { throw new QueryError(e, sql, params); });
+	private runQuery(sql: string, params: (params | paramMap) = []) {
+		let { processedSQL, processedParams } = prepare(sql, params);
+
+		return promise<QueryError, void>(cb => this.db.run(processedSQL, processedParams, cb))
+			.catch(e => { throw new QueryError(e, processedSQL, processedParams); });
 	}
 
-	private selectQuery(sql: string, params: preparedParams = []) {
-		return promise<QueryError, row[]>(cb => this.db.all(sql, params, cb))
-			.catch(e => { throw new QueryError(e, sql, params); });
+	private selectQuery(sql: string, params: (params | paramMap) = []) {
+		let { processedSQL, processedParams } = prepare(sql, params);
+
+		return promise<QueryError, row[]>(cb => this.db.all(processedSQL, processedParams, cb))
+			.catch(e => { throw new QueryError(e, processedSQL, processedParams); });
 	}
 
-	private insertQuery(sql: string, params: preparedParams = []) {
-		return promise<QueryError, string>(cb => this.db.run(sql, params, function(this: { lastID?: string }, e: Error | null) {
-			cb(e ? new QueryError(e, sql, params) : null, this.lastID);
+	private insertQuery(sql: string, params: (params | paramMap) = []) {
+		let { processedSQL, processedParams } = prepare(sql, params);
+
+		return promise<QueryError, string>(cb => this.db.run(processedSQL, processedParams, function(this: { lastID?: string }, e: Error | null) {
+			cb(e ? new QueryError(e, processedSQL, processedParams) : null, this.lastID);
 		}));
 	}
 
@@ -91,9 +97,9 @@ export class Database implements Queryable {
 
 		try {
 			let res = await fn({
-				run: this.run.bind(this),
-				select: this.select.bind(this),
-				insert: this.insert.bind(this)
+				run: this.runQuery.bind(this),
+				select: this.selectQuery.bind(this),
+				insert: this.insertQuery.bind(this)
 			});
 
 			await this.runQuery('commit');
@@ -110,13 +116,10 @@ export class Database implements Queryable {
 
 	/** Run an SQL query without a return value */
 	public async run(sql: string, params: (params | paramMap) = []) {
-		let { processedSQL, processedParams } = prepare(sql, params);
 		let done = await this.lock();
 
 		try {
-			return await this.runQuery(processedSQL, processedParams);
-		} catch(e) {
-			throw e;
+			return await this.runQuery(sql, params);
 		} finally {
 			done();
 		}
@@ -124,13 +127,10 @@ export class Database implements Queryable {
 
 	/** Run an SQL query and return all rows */
 	public async select(sql: string, params: (params | paramMap) = []) {
-		let { processedSQL, processedParams } = prepare(sql, params);
 		let done = await this.lock();
 
 		try {
-			return await this.selectQuery(processedSQL, processedParams);
-		} catch(e) {
-			throw e;
+			return await this.selectQuery(sql, params);
 		} finally {
 			done();
 		}
@@ -138,13 +138,10 @@ export class Database implements Queryable {
 
 	/** Run an SQL query and return the last insert ID */
 	public async insert(sql: string, params: (params | paramMap) = []) {
-		let { processedSQL, processedParams } = prepare(sql, params);
 		let done = await this.lock();
 
 		try {
-			return await this.insertQuery(processedSQL, processedParams);
-		} catch(e) {
-			throw e;
+			return await this.insertQuery(sql, params);
 		} finally {
 			done();
 		}

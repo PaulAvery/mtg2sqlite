@@ -18,7 +18,6 @@ async function ensureImageGroup(db: Queryable, images: string[]) {
 
 export default async function ensureImages(images: image[]) {
 	let db = await database;
-
 	return await db.transaction(async tr => {
 		let groupId = await ensureImageGroup(tr, images.map(i => i.id));
 

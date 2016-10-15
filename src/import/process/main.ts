@@ -18,7 +18,7 @@ export default function parse() {
 		await Promise.all(formats.map(format => ensureFormat({ name: format })));
 		await Promise.all(sets.map(set => ensureSet({ name: set })));
 
-		/* TODO */
+		/* TODO
 		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=414428')));
 		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=414429')));
 		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=221185')));
@@ -30,11 +30,11 @@ export default function parse() {
 		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=405234')));
 		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=417837')));
 		p.attach(Progress.fromPromise('Card', processDetails('http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=378521')));
-		return;
+		return; */
 
 		/* Now process all sets */
-		/*for(let set of sets) {
+		for(let set of sets) {
 			p.attach(processSet(set));
-		}*/
+		}
 	});
 }

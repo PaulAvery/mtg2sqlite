@@ -17,19 +17,15 @@ async function applyMigrations(db: Database) {
 		.map(f => path.join(migrationDir, f))
 		.map(f => require(f).default);
 
-	/* Create migrations table if neccessary */
-	await db.run('create table if not exists `migrations` (id integer)');
-
 	/* Get latest applied migration */
-	let ids = await db.select('select id from `migrations` order by `id` desc limit 1');
-	let latest = ids.length ? parseInt(ids[0]['id']) : 0;
+	let latest = parseInt((await db.select('pragma user_version'))[0]['user_version']);
 
 	/* Apply only neccessary migrations */
 	let needed = migrations.slice(latest);
 	for(let i = 0; i < needed.length; i++) {
 		await db.transaction(async tr => {
 			await needed[i](tr);
-			await tr.insert('insert into `migrations` (id) values (?)', [latest + i + 1]);
+			await tr.run('pragma user_version = ' + (latest + i + 1));
 		});
 	}
 
