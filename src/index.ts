@@ -18,7 +18,7 @@ async function main() {
 	progress.on('error', (e: Error) => log.write(e.stack + '\n\n'));
 
 	/* Output current progress to stdout */
-	progress.on('progress', () => console.log(progress.progress().progress));
+	progress.on('progress', () => console.log(progress.progress));
 
 	await progress.toPromise();
 	await db.close();

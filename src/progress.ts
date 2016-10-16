@@ -25,11 +25,22 @@ export default class Progress extends EventEmitter {
 	/** Flag to signal if the initialization promise funished */
 	private initialized = false;
 
+	/** The combined progress of this and its children */
+	public progress: prog = {
+		name: '',
+		progress: 0,
+		children: []
+	};
+
 	/** If we failed, the reason for our failure */
 	private failureReason: Error | null = null;
 
 	constructor(private name: string, fn: (this: Progress, progress: Progress) => Promise<void>) {
 		super();
+
+		this.progress.name = name;
+		this.on('success', () => this.recalculateProgress());
+		this.on('progress', () => this.recalculateProgress());
 
 		fn.call(this, this).then(() => {
 			this.initialized = true;
@@ -54,6 +65,7 @@ export default class Progress extends EventEmitter {
 			this.failed = true;
 			this.failureReason = error;
 
+			this.recalculateProgress();
 			this.emit('failure', this.failureReason);
 		}
 	}
@@ -78,6 +90,7 @@ export default class Progress extends EventEmitter {
 		}
 
 		this.reserved += count;
+		this.recalculateProgress();
 	}
 
 	/**
@@ -137,26 +150,27 @@ export default class Progress extends EventEmitter {
 		/* Pass progress upwards */
 		progress.on('progress', () => this.emit('progress'));
 
+		/* Add progress to own progress object */
+		this.progress.children.push(progress.progress);
+
+		/* And save job object */
 		this.jobs.push(job);
 	}
 
 	/** Returns a progress object for all descendant progress */
-	public progress() {
-		let progress = 0;
-		let children: prog[] = this.jobs.map(j => j.progress.progress());
-
+	public recalculateProgress() {
 		let total = this.reserved + this.jobs.length;
 
-		if(total === 0) {
+		if(this.failed) {
+			this.progress.progress = 1;
+		} else if(total === 0) {
 			if(this.initialized) {
-				progress = 1;
+				this.progress.progress = 1;
 			}
 		} else {
-			let childProgress = this.jobs.reduce((sum, job) => sum + job.progress.progress().progress, 0);
-			progress = childProgress / total;
+			let childProgress = this.progress.children.reduce((sum, p) => sum + p.progress, 0);
+			this.progress.progress = childProgress / total;
 		}
-
-		return { name: this.name, progress, children };
 	}
 
 	/** Utility method to create a promise which resolves / rejects on failure/success event of this object */
