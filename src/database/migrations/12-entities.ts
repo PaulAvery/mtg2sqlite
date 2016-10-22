@@ -83,7 +83,7 @@ export default async (db: Queryable) => {
 
 	await db.run(`
 		create table entity_titles (
-			title text unique,
+			title text,
 			entity_id text not null references entities(id),
 			language_name text not null references languages(name),
 

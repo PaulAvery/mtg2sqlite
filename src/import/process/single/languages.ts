@@ -1,31 +1,29 @@
 import * as url from 'url';
 import { getPage as page } from '../../../cache';
 
+import parseLanguages from '../../parse/languages';
+import parseSingleCard from '../../parse/single/card';
+import parseSingleEntity from '../../parse/single/entity';
+
 import ensureLanguage from '../../ensure/language';
-import parseSingleImages from '../../parse/single/images';
+import { ensureCardTitle } from '../../ensure/card';
+import { ensureEntityTitle } from '../../ensure/entity';
 
 type language = { link: string, language: string, translatedLanguage: string };
 
-export default async function processSingleLanguages(uri: string, card: string) {
+export default async function processSingleLanguages(uri: string, cardId: string, entityId: string) {
 	let $ = await page(uri);
+	let languages = parseLanguages($);
 
-	let languages: language[] = $('.cardItem').toArray().map(c => {
-		let $c = $(c);
-		let link = url.resolve(uri, $c.find('a').attr('href'));
-		let language = $c.find('td:nth-child(2)').text().trim();
-		let translatedLanguage = $c.find('td:nth-child(3)').text().trim();
+	for(let { language, translatedLanguage, link } of languages) {
+		let absoluteLink = url.resolve(uri, link);
 
-		return { link, language, translatedLanguage };
-	});
+		let $card = await page(absoluteLink);
+		let { title: cardTitle } = parseSingleCard($card);
+		let { title: entityTitle } = parseSingleEntity($card);
 
-	let filteredLanguages: {[key: string]: language} = {};
-	languages.forEach(l => { filteredLanguages[l.language] = l; });
-
-	for(let l of Object.keys(filteredLanguages)) {
-		let lang = filteredLanguages[l];
-		await ensureLanguage({ name: lang.language, translatedName: lang.translatedLanguage });
-
-		let imageGroup = parseSingleImages(await page(lang.link));
-		/* TODO */
+		await ensureLanguage({ name: language, translatedName: translatedLanguage });
+		await ensureCardTitle({ title: cardTitle, cardId, language });
+		await ensureEntityTitle({ title: entityTitle, entityId, language });
 	}
 };

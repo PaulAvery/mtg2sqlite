@@ -1,3 +1,5 @@
+import * as url from 'url';
+
 import { getPage as page } from '../../../cache';
 
 import ensureEntityImages from '../../ensure/entity-images';
@@ -15,6 +17,7 @@ import processSingleLegalities from './legalities';
 export default async function processSingleDetails(uri: string) {
 	let $ = await page(uri);
 	let set = $('#ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_setRow > .value a:last-child').text().trim();
+	let languageLink = $('#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentAnchors_DetailsAnchors_LanguagesLink').attr('href');
 
 	/* Parse card and entity */
 	let card = await parseSingleCard($);
@@ -36,7 +39,7 @@ export default async function processSingleDetails(uri: string) {
 	await ensureCardEntityLink({ card: cardId, entity: entity.title });
 
 	/* Process languages and legalities */
-	await processSingleLanguages(uri, cardId);
+	await processSingleLanguages(url.resolve(uri, languageLink), cardId, entityId);
 	await processSingleLegalities(uri, cardId);
 
 	return cardId;

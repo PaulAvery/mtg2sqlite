@@ -10,7 +10,7 @@ export default async (db: Queryable) => {
 
 	await db.run(`
 		create table card_titles (
-			title text not null unique,
+			title text not null,
 			card_id integer not null references cards(id),
 			language_name text not null references languages(name),
 
