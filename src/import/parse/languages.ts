@@ -1,6 +1,5 @@
 import * as url from 'url';
 import * as cheerio from 'cheerio';
-import { getPage as page } from '../../cache';
 
 type language = { link: string, language: string, translatedLanguage: string };
 

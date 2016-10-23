@@ -10,14 +10,15 @@ import { ensureEntity, ensureEntityTitle } from '../../ensure/entity';
 import parseSingleCard from '../../parse/single/card';
 import parseSingleEntity from '../../parse/single/entity';
 
+import processLegalities from '../legalities';
 import processSingleImages from './images';
 import processSingleLanguages from './languages';
-import processSingleLegalities from './legalities';
 
 export default async function processSingleDetails(uri: string) {
 	let $ = await page(uri);
 	let set = $('#ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_setRow > .value a:last-child').text().trim();
 	let languageLink = $('#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentAnchors_DetailsAnchors_LanguagesLink').attr('href');
+	let legalitiesLink = $('#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentAnchors_DetailsAnchors_PrintingsLink').attr('href');
 
 	/* Parse card and entity */
 	let card = await parseSingleCard($);
@@ -39,8 +40,8 @@ export default async function processSingleDetails(uri: string) {
 	await ensureCardEntityLink({ card: cardId, entity: entity.title });
 
 	/* Process languages and legalities */
+	await processLegalities(url.resolve(uri, legalitiesLink), cardId);
 	await processSingleLanguages(url.resolve(uri, languageLink), cardId, entityId);
-	await processSingleLegalities(uri, cardId);
 
 	return cardId;
 };
